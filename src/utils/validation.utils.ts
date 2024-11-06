@@ -1,8 +1,9 @@
-// src/utils/validation.utils.ts
 import Joi from 'joi';
 import { CustomError } from './error.utils';
+import { PlanType } from '../types/property.types';
 
 export const ValidationSchemas = {
+  // Existing schemas
   paymentLink: Joi.object({
     amount: Joi.number().positive().required(),
     currency: Joi.string().length(3).lowercase().default('usd'),
@@ -17,8 +18,25 @@ export const ValidationSchemas = {
     type: Joi.string().required(),
     data: Joi.object().required(),
   }),
+
+  // Add new schema for property payment link
+  createPaymentLink: Joi.object({
+    planType: Joi.string()
+      .valid(...Object.values(PlanType))
+      .required()
+      .messages({
+        'any.required': 'Plan type is required',
+        'any.only': 'Invalid plan type. Must be one of: basic, pro, premium',
+      }),
+    propertyId: Joi.string()
+      .required()
+      .messages({
+        'any.required': 'Property ID is required',
+      }),
+  }),
 };
 
+// Rest of the validation.utils.ts file remains the same
 export const validate = (schema: Joi.Schema, data: any) => {
   const { error, value } = schema.validate(data, {
     abortEarly: false,
@@ -36,7 +54,6 @@ export const validate = (schema: Joi.Schema, data: any) => {
   return value;
 };
 
-// Add some common validation helpers
 export const ValidationHelpers = {
   isValidEmail: (email: string): boolean => {
     const emailSchema = Joi.string().email();
